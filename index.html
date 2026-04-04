@@ -1010,6 +1010,79 @@
     }
 
     // CASE STUDIES
+    function SideProjectRow({ item, index }) {
+  const [open, setOpen] = React.useState(false);
+  return (
+    <div
+      style={{
+        borderTop: index === 0 ? '1px solid var(--border)' : 'none',
+        borderBottom: '1px solid var(--border)',
+        padding: '1rem 0',
+      }}
+    >
+      <div
+        onClick={() => setOpen(!open)}
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          cursor: 'pointer',
+          userSelect: 'none',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <span style={{ color: 'var(--accent)', fontSize: '0.85rem' }}>
+            {open ? '▾' : '▸'}
+          </span>
+          <span style={{ fontFamily: 'var(--font-head)', fontWeight: 600, fontSize: '0.98rem' }}>
+            {item.title}
+          </span>
+        </div>
+        {item.link ? (
+          <span className="case-outcome" style={{ fontSize: '0.75rem', padding: '0.3rem 0.75rem' }}>
+            Available
+          </span>
+        ) : (
+          <span style={{
+            fontSize: '0.75rem', padding: '0.3rem 0.75rem',
+            background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)',
+            borderRadius: '8px', color: 'var(--muted)'
+          }}>
+            Coming Soon
+          </span>
+        )}
+      </div>
+      {open && (
+        <div style={{
+          marginTop: '0.85rem',
+          paddingLeft: '1.4rem',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.75rem',
+          animation: 'fadeSlideUp 0.25s ease both',
+        }}>
+          <div className="case-text">{item.description}</div>
+          {item.link ? (
+            <a
+              href={item.link}
+              target="_blank"
+              rel="noreferrer"
+              className="btn-secondary"
+              style={{ width: 'fit-content', fontSize: '0.82rem', padding: '0.55rem 1.25rem' }}
+            >
+              Open Case Study
+            </a>
+          ) : (
+            <span style={{ color: 'var(--muted)', fontSize: '0.82rem', fontStyle: 'italic' }}>
+              This case study is being documented — check back soon.
+            </span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
     function Projects() {
       return (
         <section id="projects">
@@ -1069,6 +1142,35 @@
 
               </div>
             </div>
+            {/* SIDE PROJECTS & CASE STUDIES */}
+            <div className="case-card fade-in" style={{ marginTop: '0' }}>
+            <span className="case-emoji">🧪</span>
+            <div className="case-title">Side Projects & Case Studies</div>
+            <div className="case-text" style={{ marginBottom: '1.5rem' }}>
+            Personal brainstorming outcomes — products I've deconstructed, markets I've explored,
+            and problems I couldn't stop thinking about. Updated as I go.
+            </div>
+
+            {/* ============================================================
+                ADD YOUR CASE STUDIES HERE
+                Each entry needs: title, description, link
+                Set link to null if not ready yet — it'll show "Coming Soon"
+                ============================================================ */}
+            {[
+            {
+                title: 'Case Study Title One',
+                description: 'One line about what this case study covers.',
+                link: 'YOUR_GOOGLE_DRIVE_LINK_HERE',
+            },
+            {
+                title: 'Case Study Title Two',
+                description: 'One line about what this case study covers.',
+                link: null, // not ready yet — shows "Coming Soon"
+            },
+            ].map((item, i) => (
+                <SideProjectRow key={i} item={item} index={i} />
+            ))}
+        </div>
         </section>
       );
     }
