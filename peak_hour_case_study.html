@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peak-Hour Cancellation Crisis — Case Study by Vikas Gaurav</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --bg2: #10141c;
+    --bg3: #161b26;
+    --border: rgba(255,255,255,0.08);
+    --accent: #f97316;
+    --accent2: #fb923c;
+    --accent-glow: rgba(249,115,22,0.18);
+    --blue: #38bdf8;
+    --green: #4ade80;
+    --purple: #a78bfa;
+    --text: #e8eaf0;
+    --text-muted: #8b92a8;
+    --text-dim: #4b5368;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(249,115,22,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(249,115,22,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 72px 0 56px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+
+  .tag {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 100px;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    background: var(--bg2);
+  }
+  .tag.accent { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+
+  .hero h1 span { color: var(--accent); }
+
+  .hero-sub {
+    font-size: 17px;
+    color: var(--text-muted);
+    max-width: 620px;
+    margin-bottom: 36px;
+  }
+
+  .hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    padding: 20px 24px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .meta-item .icon { font-size: 16px; }
+  .meta-item strong { color: var(--text); font-weight: 500; }
+
+  /* ── STAT CARDS ── */
+  .stat-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 48px 0 0;
+  }
+
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 14px 14px 0 0;
+  }
+  .stat-card.orange::before { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+  .stat-card.blue::before { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
+  .stat-card.red::before { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+  .stat-card:hover { border-color: rgba(255,255,255,0.16); }
+
+  .stat-number {
+    font-family: 'Syne', sans-serif;
+    font-size: 40px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .stat-card.orange .stat-number { color: var(--accent); }
+  .stat-card.blue .stat-number { color: var(--blue); }
+  .stat-card.red .stat-number { color: #f87171; }
+
+  .stat-label { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+
+  /* ── SECTIONS ── */
+  .section {
+    padding: 56px 0 0;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .section-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .icon-orange { background: var(--accent-glow); border: 1px solid rgba(249,115,22,0.3); }
+  .icon-blue { background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.2); }
+  .icon-green { background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.2); }
+  .icon-purple { background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.2); }
+  .icon-teal { background: rgba(45,212,191,0.1); border: 1px solid rgba(45,212,191,0.2); }
+
+  .section-number {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  p { color: var(--text-muted); font-size: 15px; margin-bottom: 16px; }
+  p:last-child { margin-bottom: 0; }
+
+  /* ── PROBLEM BLOCK ── */
+  .problem-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .problem-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .problem-card .p-icon { font-size: 22px; margin-bottom: 12px; }
+  .problem-card .p-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  .problem-card p { font-size: 13px; margin: 0; }
+
+  /* ── FEATURES ── */
+  .feature-list { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+
+  .feature-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    transition: border-color 0.2s;
+  }
+  .feature-item:hover { border-color: rgba(249,115,22,0.25); }
+
+  .feature-dot {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--accent-glow);
+    border: 1px solid rgba(249,115,22,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .feature-content .f-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .feature-content p { font-size: 13px; margin: 0; }
+
+  /* ── ALGORITHM ── */
+  .algo-box {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    margin-top: 20px;
+  }
+
+  .algo-formula {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(14px, 2.5vw, 18px);
+    font-weight: 700;
+    color: var(--accent);
+    background: rgba(249,115,22,0.08);
+    border: 1px solid rgba(249,115,22,0.2);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    text-align: center;
+    letter-spacing: 0.02em;
+  }
+
+  .weight-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .weight-card {
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+  }
+
+  .weight-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+  .w1 .weight-label { color: var(--blue); }
+  .w2 .weight-label { color: var(--accent); }
+  .w3 .weight-label { color: var(--purple); }
+
+  .weight-desc { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .weight-note { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+  .weight-card.w2 { border-color: rgba(249,115,22,0.3); background: var(--accent-glow); }
+  .weight-card.w2 .weight-note { color: var(--accent2); }
+
+  /* ── RATIO ── */
+  .ratio-visual {
+    display: flex;
+    gap: 8px;
+    margin: 20px 0;
+    align-items: center;
+  }
+
+  .ratio-block {
+    height: 48px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .rb-priority { background: var(--accent-glow); border: 1px solid rgba(249,115,22,0.4); color: var(--accent); flex: 2; }
+  .rb-general { background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.2); color: var(--blue); flex: 1; }
+  .ratio-label { font-size: 12px; color: var(--text-dim); }
+
+  /* ── DRIVER ── */
+  .driver-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  .driver-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px;
+  }
+
+  .driver-card .d-icon { font-size: 24px; margin-bottom: 12px; }
+  .driver-card .d-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .driver-card p { font-size: 13px; margin: 0; }
+
+  /* ── ROADMAP ── */
+  .roadmap-list { display: flex; flex-direction: column; gap: 2px; margin-top: 8px; }
+
+  .roadmap-item {
+    display: flex;
+    gap: 20px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .roadmap-item:last-child { border-bottom: none; }
+
+  .roadmap-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 40px;
+    flex-shrink: 0;
+  }
+  .roadmap-circle {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
+  .rc-green { background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.25); }
+  .rc-purple { background: rgba(167,139,250,0.12); border: 1px solid rgba(167,139,250,0.25); }
+
+  .roadmap-content .r-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .roadmap-content p { font-size: 13px; margin: 0; }
+
+  /* ── HIGHLIGHT BOX ── */
+  .highlight-box {
+    background: rgba(249,115,22,0.06);
+    border: 1px solid rgba(249,115,22,0.2);
+    border-left: 3px solid var(--accent);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-top: 16px;
+  }
+  .highlight-box p { font-size: 14px; color: var(--text); margin: 0; font-style: italic; }
+
+  /* ── FOOTER ── */
+  .footer {
+    margin-top: 72px;
+    padding: 36px 0;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: gap;
+    gap: 16px;
+  }
+
+  .author-block { display: flex; align-items: center; gap: 14px; }
+
+  .author-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--accent-glow);
+    border: 2px solid rgba(249,115,22,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--accent);
+  }
+
+  .author-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .author-role { font-size: 12px; color: var(--text-muted); }
+
+  .portfolio-link {
+    font-size: 13px;
+    color: var(--accent);
+    text-decoration: none;
+    border: 1px solid rgba(249,115,22,0.3);
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: var(--accent-glow);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .portfolio-link:hover { background: rgba(249,115,22,0.25); border-color: var(--accent); }
+
+  /* ── DIVIDER ── */
+  .section-divider { height: 1px; background: var(--border); margin-top: 56px; }
+
+  @media (max-width: 640px) {
+    .stat-strip, .problem-grid, .weight-grid, .driver-grid { grid-template-columns: 1fr 1fr; }
+    .weight-grid { grid-template-columns: 1fr; }
+    .problem-grid { grid-template-columns: 1fr; }
+    .footer { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="tag-row">
+      <span class="tag accent">🚖 Case Study</span>
+      <span class="tag">Product Strategy</span>
+      <span class="tag">Marketplace Design</span>
+      <span class="tag">Hyderabad IT Corridor</span>
+    </div>
+    <h1>Solving the<br><span>Peak-Hour</span><br>Cancellation Crisis</h1>
+    <p class="hero-sub">A deep-dive into marketplace reliability, algorithmic matching, and commuter retention — targeting Hitech City, Gachibowli & Madhapur.</p>
+    <div class="hero-meta">
+      <div class="meta-item"><span class="icon">🎯</span><span>Focus: <strong>Reliability-as-a-Service</strong></span></div>
+      <div class="meta-item"><span class="icon">📍</span><span>Market: <strong>Hyderabad IT Corridor</strong></span></div>
+      <div class="meta-item"><span class="icon">🕗</span><span>Peak Window: <strong>8:30 AM – 10:30 AM</strong></span></div>
+    </div>
+
+    <!-- Stat Strip -->
+    <div class="stat-strip">
+      <div class="stat-card red">
+        <div class="stat-number">40%</div>
+        <div class="stat-label">Cancellation rate during peak hours — even after ride accepted</div>
+      </div>
+      <div class="stat-card orange">
+        <div class="stat-number">3 min</div>
+        <div class="stat-label">SLA guarantee window for Priority Pulse subscribers</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-number">15%</div>
+        <div class="stat-label">Driver premium payout for completing priority rides</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 1 -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-icon icon-orange">🔍</div>
+      <div>
+        <div class="section-number">Section 01</div>
+        <div class="section-title">The Observation: The Peak-Hour Paradox</div>
+      </div>
+    </div>
+    <p>As a regular commuter in Hyderabad's IT corridor, I identified a recurring marketplace failure: between 8:30 AM and 10:30 AM, demand outstrips supply so aggressively that drivers frequently "hunt" for higher surge prices — resulting in a 40% cancellation rate for daily commuters, even after a ride is accepted.</p>
+
+    <div class="problem-grid">
+      <div class="problem-card">
+        <div class="p-icon">😟</div>
+        <div class="p-title">User Pain</div>
+        <p>High anxiety and last-minute professional delays for time-sensitive commuters.</p>
+      </div>
+      <div class="problem-card">
+        <div class="p-icon">📉</div>
+        <div class="p-title">Business Impact</div>
+        <p>Loss of high-frequency Power Users to competitors or personal vehicles due to unreliability.</p>
+      </div>
+      <div class="problem-card">
+        <div class="p-icon">🎯</div>
+        <div class="p-title">The Goal</div>
+        <p>Increase Fulfilment Rate for time-sensitive users without alienating the general user base.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- SECTION 2 -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-icon icon-blue">⚡</div>
+      <div>
+        <div class="section-number">Section 02</div>
+        <div class="section-title">The Solution: "Priority Pulse"</div>
+      </div>
+    </div>
+    <p>A segment of commuters values <strong style="color:var(--text)">Certainty over lowest price</strong>. The proposed solution is a <strong style="color:var(--text)">Reliability-as-a-Service</strong> subscription model — Priority Pulse.</p>
+
+    <div class="feature-list">
+      <div class="feature-item">
+        <div class="feature-dot">🏆</div>
+        <div class="feature-content">
+          <div class="f-title">Priority Matching Queue</div>
+          <p>Subscribers are front-loaded in the matching algorithm during peak windows, bypassing the standard queue entirely.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-dot">🛡️</div>
+        <div class="feature-content">
+          <div class="f-title">The "On-Time Guarantee" (SLA)</div>
+          <p>If no driver is assigned within 3 minutes, the user automatically receives in-app credits — no claim required.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-dot">🖥️</div>
+        <div class="feature-content">
+          <div class="f-title">Technical Integrity</div>
+          <p>The 3-minute SLA timer is server-side, triggered the moment the request enters the Matching Engine — guarantees are independent of local network latency or signal strength.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- SECTION 3 -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-icon icon-purple">⚙️</div>
+      <div>
+        <div class="section-number">Section 03</div>
+        <div class="section-title">Technical Execution: Rethinking the Matching Engine</div>
+      </div>
+    </div>
+    <p>Traditional matching favors the <em>Closest Driver</em>. For the Priority model, the algorithm is re-weighted to favor <strong style="color:var(--text)">Reliability</strong> over proximity.</p>
+
+    <div class="algo-box">
+      <p style="font-size:12px; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-dim); margin-bottom:0;">Proposed Match Score Formula</p>
+      <div class="algo-formula">Match Score = (W1 × Distance) + (W2 × Completion Rate) + (W3 × Rating)</div>
+
+      <div class="weight-grid">
+        <div class="weight-card w1">
+          <div class="weight-label">W1</div>
+          <div class="weight-desc">Distance</div>
+          <div class="weight-note">Standard weight</div>
+        </div>
+        <div class="weight-card w2">
+          <div class="weight-label">W2 ★</div>
+          <div class="weight-desc">Completion Rate</div>
+          <div class="weight-note">Highest priority weight</div>
+        </div>
+        <div class="weight-card w3">
+          <div class="weight-label">W3</div>
+          <div class="weight-desc">Rating</div>
+          <div class="weight-note">Standard weight</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="highlight-box">
+      <p>💡 The system may bypass a driver 2 minutes away with a high cancellation history in favor of a driver 4 minutes away with a 100% completion record — trading proximity for certainty.</p>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- SECTION 4 -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-icon icon-teal">⚖️</div>
+      <div>
+        <div class="section-number">Section 04</div>
+        <div class="section-title">Managing Marketplace Equilibrium</div>
+      </div>
+    </div>
+    <p>A common pitfall in priority systems is "starving" the general pool. A dynamic ratio maintains platform health across all users.</p>
+
+    <div style="margin-top:20px; background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:24px;">
+      <div style="font-family:'Syne',sans-serif; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); margin-bottom:12px;">The 2:1 Allocation Ratio During Extreme Peaks</div>
+      <div class="ratio-visual">
+        <div class="ratio-block rb-priority">🏆 2× Priority Matches</div>
+        <div class="ratio-block rb-general">🚗 1× General</div>
+      </div>
+      <p style="font-size:13px; margin:0;">For every two subscriber matches, at least one non-subscriber request is fulfilled — preventing systemic bias toward paying users.</p>
+    </div>
+
+    <div class="feature-list" style="margin-top:12px;">
+      <div class="feature-item">
+        <div class="feature-dot">📢</div>
+        <div class="feature-content">
+          <div class="f-title">Operational Transparency</div>
+          <p>Non-subscribers see clear UI feedback — "High Demand: Priority Users are being matched" — so they understand the delay, not just experience it.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-dot">🎟️</div>
+        <div class="feature-content">
+          <div class="f-title">One-Time Priority Pass</div>
+          <p>Non-subscribers are offered a low-friction pass to experience the feature — acting as an in-context conversion funnel for the subscription.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- SECTION 5 -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-icon icon-green">🚗</div>
+      <div>
+        <div class="section-number">Section 05</div>
+        <div class="section-title">Supply Side: Driver Buy-In</div>
+      </div>
+    </div>
+    <p>A marketplace only works if supply is motivated to participate. Two mechanisms ensure drivers embrace the Priority system rather than circumvent it.</p>
+
+    <div class="driver-grid">
+      <div class="driver-card">
+        <div class="d-icon">💰</div>
+        <div class="d-title">Reliability Premium</div>
+        <p>Drivers earn a <strong style="color:var(--green)">15% higher payout</strong> for completing Priority rides, funded directly by the subscription pool. Reliability is financially incentivized.</p>
+      </div>
+      <div class="driver-card">
+        <div class="d-icon">📡</div>
+        <div class="d-title">Forward Dispatching</div>
+        <p>The system <strong style="color:var(--green)">pre-assigns</strong> drivers finishing a nearby trip to a subscriber before they officially become available — minimizing idle time while meeting the 3-minute SLA.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- SECTION 6 -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-icon icon-purple">🗺️</div>
+      <div>
+        <div class="section-number">Section 06</div>
+        <div class="section-title">Retrospective & Future Roadmap</div>
+      </div>
+    </div>
+    <p>Building this theoretical model surfaced the deep complexity of two-sided marketplaces. Key learnings and next iterations:</p>
+
+    <div class="roadmap-list">
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle rc-green">🤖</div>
+        </div>
+        <div class="roadmap-content">
+          <div class="r-title">Predictive Dispatching via ML</div>
+          <p>Integrate machine learning to nudge drivers toward high-demand clusters — like Mindspace or DLF Cyber City — 15 minutes before the peak hits, expanding the supply buffer proactively.</p>
+        </div>
+      </div>
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle rc-purple">🗺️</div>
+        </div>
+        <div class="roadmap-content">
+          <div class="r-title">Hyper-Local Pricing Experiments</div>
+          <p>Test different subscription price points across Hyderabad zones — e.g., Secunderabad vs. Financial District — to optimize for local price elasticity and willingness-to-pay.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="author-block">
+      <div class="author-avatar">VG</div>
+      <div>
+        <div class="author-name">Vikas Gaurav</div>
+        <div class="author-role">Product Management · Real-World Friction → Data-Driven Strategy</div>
+      </div>
+    </div>
+    <a class="portfolio-link" href="https://comp-vik.github.io/vikas-gaurav-portfolio/" target="_blank">
+      🌐 View Portfolio →
+    </a>
+  </footer>
+
+</div>
+</body>
+</html>
